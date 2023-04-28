@@ -183,6 +183,43 @@ static const struct picom_option picom_options[] = {
                                                                              "you want to attach a debugger to picom"},
     {"no-ewmh-fullscreen"          , no_argument      , 803, NULL          , "Do not use EWMH to detect fullscreen windows. Reverts to checking if a "
                                                                              "window is fullscreen based only on its size and coordinates."},
+    {"animations"		   , no_argument      , 804, NULL	   , "Run animations for window geometry changes (movement and scaling)." },
+    {"animation-stiffness"	   , required_argument, 805, NULL	   , "Stiffness (a.k.a. tension) parameter for animation (default: 200.0)."},
+    {"animation-dampening"	   , required_argument, 806, NULL	   , "Dampening (a.k.a. friction) parameter for animation (default: 25.0)."},
+    {"animation-window-mass"	   , required_argument, 807, NULL	   , "Mass parameter for animation (default: 1.0)."},
+    {"animation-clamping"	   , no_argument      , 808, NULL	   , "Whether to clamp animations (default: true)"},
+    {"animation-for-open-window"   , required_argument, 809, NULL	   , "Which animation to run when opening a window."
+								  	     " Must be one of `none`, `fly-in`, `zoom`,"
+								  	     "`slide-down`, `slide-up`, `slide-left`, `slide-right`"
+								  	     " (default: none)."},
+    {"animation-for-transient-window", required_argument, 810, NULL	   , "Which animation to run when opening a transient window."
+									     " Must be one of `none`, `fly-in`, `zoom`,"
+									     " `slide-down`, `slide-up`, `slide-left`, `slide-right`"
+									     " (default: none)."},
+    {"animation-for-unmap-window"  , required_argument , 811, NULL	   , "Which animation to run when hiding (e.g. minimize) a window."
+								 	     " Must be one of `auto`, `none`, `fly-in`, `zoom`,"
+								 	     " `slide-down`, `slide-up`, `slide-left`, `slide-right`"
+								 	     " `slide-in`, `slide-out`"
+								 	     " (default: auto)."},
+    {"animation-for-workspace-switch-in", required_argument, 812, NULL	   , "Which animation to run on switching workspace for windows"
+									     " comming into view."
+									     " IMPORTANT: window manager must set _NET_CURRENT_DESKTOP"
+									     " before doing the hide/show of windows"
+									     " Must be one of `auto`, `none`, `fly-in`, `zoom`,"
+									     " `slide-down`, `slide-up`, `slide-left`, `slide-right`"
+									     " `slide-in`, `slide-out`"
+									     " (default: auto)."},
+    {"animation-for-workspace-switch-out", required_argument, 813, NULL	   , "Which animation to run on switching workspace for windows"
+									     " going out of view."
+									     " IMPORTANT: window manager must set _NET_CURRENT_DESKTOP"
+									     " before doing the hide/show of windows"
+									     " Must be one of `auto`, `none`, `fly-in`, `zoom`,"
+									     " `slide-down`, `slide-up`, `slide-left`, `slide-right`"
+									     " `slide-in`, `slide-out`"
+									     " (default: auto)."},
+    {"animation-delta"		   , required_argument, 814, NULL	   , "The time between steps in animation, in milliseconds. (> 0, defaults to 10)."},
+    {"animation-force-steps"	   , required_argument, 815, NULL	   , "Force animations to go step by step even if cpu usage is high "
+	    						      		     " (default: false)"},
 };
 // clang-format on
 
@@ -745,6 +782,81 @@ bool get_cfg(options_t *opt, int argc, char *const *argv, bool shadow_enable,
 			break;
 		P_CASEBOOL(802, debug_mode);
 		P_CASEBOOL(803, no_ewmh_fullscreen);
+		P_CASEBOOL(804, animations);
+		case 805:
+			// --animation-stiffness
+			opt->animation_stiffness = atof(optarg);
+			break;
+		case 806:
+			// --animation-dampening
+			opt->animation_dampening = atof(optarg);
+			break;
+		case 807:
+			// --animation-window-masss
+			opt->animation_window_mass = atof(optarg);
+			break;
+		case 808:
+			// --animation-clamping
+			opt->animation_clamping = true;
+			break;
+		case 809: {
+			// --animation-for-open-window
+			enum open_window_animation animation = parse_open_window_animation(optarg);
+			if (animation >= OPEN_WINDOW_ANIMATION_INVALID) {
+				log_warn("Invalid open-window animation %s, ignoring.", optarg);
+			} else {
+				opt->animation_for_open_window = animation;
+			}
+			break;
+		}
+		case 810: {
+			// --animation-for-transient-window
+			enum open_window_animation animation = parse_open_window_animation(optarg);
+			if (animation >= OPEN_WINDOW_ANIMATION_INVALID) {
+				log_warn("Invalid transient-window animation %s, ignoring.", optarg);
+			} else {
+				opt->animation_for_transient_window = animation;
+			}
+			break;
+		}
+		case 811: {
+			// --animation-for-unmap-window
+			enum open_window_animation animation = parse_open_window_animation(optarg);
+			if (animation >= OPEN_WINDOW_ANIMATION_INVALID) {
+				log_warn("Invalid unmap-window animation %s, ignoring.", optarg);
+			} else {
+				opt->animation_for_unmap_window = animation;
+			}
+			break;
+		}
+		case 812: {
+			// --animation-for-workspace-switch-in
+			enum open_window_animation animation = parse_open_window_animation(optarg);
+			if (animation >= OPEN_WINDOW_ANIMATION_INVALID) {
+				log_warn("Invalid workspace-switch-in animation %s, ignoring.", optarg);
+			} else {
+				opt->animation_for_workspace_switch_in = animation;
+			}
+			break;
+		}
+		case 813: {
+			// --animation-for-workspace-switch-out
+			enum open_window_animation animation = parse_open_window_animation(optarg);
+			if (animation >= OPEN_WINDOW_ANIMATION_INVALID) {
+				log_warn("Invalid workspace-switch-out animation %s, ignoring.", optarg);
+			} else {
+				opt->animation_for_workspace_switch_out = animation;
+			}
+			break;
+		}
+		case 814:
+			// --animation-delta
+			opt->animation_delta = atof(optarg);
+			break;
+		case 815:
+			// --animation-force-steps
+			opt->animation_force_steps = true;
+			break;
 		default: usage(argv[0], 1); break;
 #undef P_CASEBOOL
 		}

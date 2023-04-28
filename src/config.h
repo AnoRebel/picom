@@ -40,6 +40,20 @@ enum backend {
 	NUM_BKEND,
 };
 
+enum open_window_animation {
+	OPEN_WINDOW_ANIMATION_NONE = 0,
+	OPEN_WINDOW_ANIMATION_AUTO,
+	OPEN_WINDOW_ANIMATION_FLYIN,
+	OPEN_WINDOW_ANIMATION_ZOOM,
+	OPEN_WINDOW_ANIMATION_SLIDE_UP,
+	OPEN_WINDOW_ANIMATION_SLIDE_DOWN,
+	OPEN_WINDOW_ANIMATION_SLIDE_LEFT,
+	OPEN_WINDOW_ANIMATION_SLIDE_RIGHT,
+	OPEN_WINDOW_ANIMATION_SLIDE_IN,
+	OPEN_WINDOW_ANIMATION_SLIDE_OUT,
+	OPEN_WINDOW_ANIMATION_INVALID,
+};
+
 typedef struct win_option_mask {
 	bool shadow : 1;
 	bool fade : 1;
@@ -49,6 +63,10 @@ typedef struct win_option_mask {
 	bool redir_ignore : 1;
 	bool opacity : 1;
 	bool clip_shadow_above : 1;
+	enum open_window_animation animation;
+	enum open_window_animation animation_unmap;
+	enum open_window_animation animation_workspace_in;
+	enum open_window_animation animation_workspace_out;
 } win_option_mask_t;
 
 typedef struct win_option {
@@ -60,6 +78,10 @@ typedef struct win_option {
 	bool redir_ignore;
 	double opacity;
 	bool clip_shadow_above;
+	enum open_window_animation animation;
+	enum open_window_animation animation_unmap;
+	enum open_window_animation animation_workspace_in;
+	enum open_window_animation animation_workspace_out;
 } win_option_t;
 
 enum blur_method {
@@ -172,6 +194,35 @@ typedef struct options {
 	/// Fading blacklist. A linked list of conditions.
 	c2_lptr_t *fade_blacklist;
 
+	// === Animations ===
+	/// Whether to do window animations
+	bool animations;
+	/// Which animation to run when opening a window
+	enum open_window_animation animation_for_open_window;
+	/// Which animation to run when opening a transient window
+	enum open_window_animation animation_for_transient_window;
+	/// Which animation to run when unmapping (e.g. minimizing) a window
+	enum open_window_animation animation_for_unmap_window;
+	/// Which animation to run when switching workspace
+	/// IMPORTANT: will only work if window manager updates
+	/// _NET_CURRENT_DESKTOP before doing the hide/show of windows
+	enum open_window_animation animation_for_workspace_switch_in;
+	enum open_window_animation animation_for_workspace_switch_out;
+	/// Spring stiffness for animation
+	double animation_stiffness;
+	/// Window mass for animation
+	double animation_window_mass;
+	/// Animation dampening
+	double animation_dampening;
+	/// Animation delta. In milliseconds.
+	double animation_delta;
+	/// Whether to force animations to not miss a beat
+	bool animation_force_steps;
+	/// Whether to clamp animations
+	bool animation_clamping;
+	/// TODO: window animation blacklist
+	/// TODO: open/close animations
+
 	// === Opacity ===
 	/// Default opacity for inactive windows.
 	/// 32-bit integer with the format of _NET_WM_WINDOW_OPACITY.
@@ -273,6 +324,7 @@ bool must_use parse_rule_window_shader(c2_lptr_t **, const char *, const char *)
 char *must_use locate_auxiliary_file(const char *scope, const char *path,
                                      const char *include_dir);
 enum blur_method must_use parse_blur_method(const char *src);
+enum open_window_animation must_use parse_open_window_animation(const char *src);
 
 /**
  * Add a pattern to a condition linked list.

@@ -156,6 +156,8 @@ typedef struct session {
 	ev_timer unredir_timer;
 	/// Timer for fading
 	ev_timer fade_timer;
+	/// Timer for animations
+	ev_timer animation_timer;
 	/// Use an ev_idle callback for drawing
 	/// So we only start drawing when events are processed
 	ev_idle draw_idle;
@@ -203,6 +205,10 @@ typedef struct session {
 	int root_height;
 	/// Width of root window.
 	int root_width;
+	/// Current desktop number of root window
+	int root_desktop_num;
+	/// Desktop switch direction
+	int root_desktop_switch_direction;
 	// Damage of root window.
 	// Damage root_damage;
 	/// X Composite overlay window.
@@ -266,6 +272,8 @@ typedef struct session {
 	xcb_render_picture_t *alpha_picts;
 	/// Time of last fading. In milliseconds.
 	long long fade_time;
+	/// Time of last window animation step. In milliseconds.
+	long animation_time; // TODO(dccsillag) turn into `long long`, like fade_time
 	/// Head pointer of the error ignore linked list.
 	pending_reply_t *pending_reply_head;
 	/// Pointer to the <code>next</code> member of tail element of the error

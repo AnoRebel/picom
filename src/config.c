@@ -713,11 +713,48 @@ void set_default_winopts(options_t *opt, win_option_mask_t *mask, bool shadow_en
 			// opacity logic is complicated, and needs an "unset" state
 			opt->wintype_option[i].opacity = NAN;
 		}
+		if (!mask[i].animation) {
+			mask[i].animation = OPEN_WINDOW_ANIMATION_INVALID;
+			opt->wintype_option[i].animation = OPEN_WINDOW_ANIMATION_INVALID;
+		}
+		if (!mask[i].animation_unmap) {
+			mask[i].animation_unmap = OPEN_WINDOW_ANIMATION_INVALID;
+			opt->wintype_option[i].animation_unmap = OPEN_WINDOW_ANIMATION_INVALID;
+		}
+		if (!mask[i].animation_workspace_in) {
+			mask[i].animation_workspace_in = OPEN_WINDOW_ANIMATION_INVALID;
+			opt->wintype_option[i].animation_workspace_in = OPEN_WINDOW_ANIMATION_INVALID;
+		}
+		if (!mask[i].animation_workspace_out) {
+			mask[i].animation_workspace_out = OPEN_WINDOW_ANIMATION_INVALID;
+			opt->wintype_option[i].animation_workspace_out = OPEN_WINDOW_ANIMATION_INVALID;
+		}
 		if (!mask[i].clip_shadow_above) {
 			mask[i].clip_shadow_above = true;
 			opt->wintype_option[i].clip_shadow_above = false;
 		}
 	}
+}
+
+enum open_window_animation parse_open_window_animation(const char *src) {
+	if (strcmp(src, "none") == 0) {
+		return OPEN_WINDOW_ANIMATION_NONE;
+	}else if (strcmp(src, "auto") == 0) {
+		return OPEN_WINDOW_ANIMATION_AUTO;
+	} else if (strcmp(src, "fly-in") == 0) {
+		return OPEN_WINDOW_ANIMATION_FLYIN;
+	} else if (strcmp(src, "zoom") == 0) {
+		return OPEN_WINDOW_ANIMATION_ZOOM;
+	} else if (strcmp(src, "slide-up") == 0) {
+		return OPEN_WINDOW_ANIMATION_SLIDE_UP;
+	} else if (strcmp(src, "slide-down") == 0) {
+		return OPEN_WINDOW_ANIMATION_SLIDE_DOWN;
+	} else if (strcmp(src, "slide-left") == 0) {
+		return OPEN_WINDOW_ANIMATION_SLIDE_LEFT;
+	} else if (strcmp(src, "slide-right") == 0) {
+		return OPEN_WINDOW_ANIMATION_SLIDE_RIGHT;
+	}
+	return OPEN_WINDOW_ANIMATION_INVALID;
 }
 
 char *parse_config(options_t *opt, const char *config_file, bool *shadow_enable,
@@ -763,6 +800,19 @@ char *parse_config(options_t *opt, const char *config_file, bool *shadow_enable,
 	    .no_fading_openclose = false,
 	    .no_fading_destroyed_argb = false,
 	    .fade_blacklist = NULL,
+
+	    .animations = false,
+	    .animation_for_open_window = OPEN_WINDOW_ANIMATION_NONE,
+	    .animation_for_transient_window = OPEN_WINDOW_ANIMATION_NONE,
+	    .animation_for_unmap_window = OPEN_WINDOW_ANIMATION_AUTO,
+	    .animation_for_workspace_switch_in = OPEN_WINDOW_ANIMATION_AUTO,
+	    .animation_for_workspace_switch_out = OPEN_WINDOW_ANIMATION_AUTO,
+	    .animation_stiffness = 200.0,
+	    .animation_window_mass = 1.0,
+	    .animation_dampening = 25,
+	    .animation_delta = 10,
+	    .animation_force_steps = false,
+	    .animation_clamping = true,
 
 	    .inactive_opacity = 1.0,
 	    .inactive_opacity_override = false,

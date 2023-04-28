@@ -245,6 +245,18 @@ compose_impl(struct _xrender_data *xd, struct xrender_image *xrimg, coord_t dst,
 	pixman_region32_init(&reg);
 	pixman_region32_intersect(&reg, (region_t *)reg_paint, (region_t *)reg_visible);
 	x_set_picture_clip_region(xd->base.c, result, 0, 0, &reg);
+#define DOUBLE_TO_XFIXED(value) ((xcb_render_fixed_t)(((double)(value)) * 65536))
+		{
+			const xcb_render_transform_t transform = {
+				DOUBLE_TO_XFIXED((double)img->ewidth / (double)tmpew), DOUBLE_TO_XFIXED(0.0), DOUBLE_TO_XFIXED(0.0),
+				DOUBLE_TO_XFIXED(0.0), DOUBLE_TO_XFIXED((double)img->eheight / (double)tmpeh), DOUBLE_TO_XFIXED(0.0),
+				DOUBLE_TO_XFIXED(0.0), DOUBLE_TO_XFIXED(0.0), DOUBLE_TO_XFIXED(1.0),
+			};
+			xcb_render_set_picture_transform(xd->base.c, inner->pict, transform);
+			xcb_render_set_picture_filter(xd->base.c, inner->pict, 7, "nearest", 0, NULL);
+		}
+#undef DOUBLE_TO_XFIXED
+
 	if (img->corner_radius != 0 && xrimg->rounded_rectangle == NULL) {
 		xrimg->rounded_rectangle = make_rounded_corner_cache(
 		    xd->base.c, xd->white_pixel, xd->base.root, inner->width,
